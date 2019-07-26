@@ -164,7 +164,39 @@ int Graph::kruskal(){
 }
 
 int Graph::prim(){
-    return 0;
+    
+    for(unsigned int I=0; I < this->V.size(); I++){
+        V[I]->distance = numeric_limits<int>::max();
+    }
+    
+    Node *source = this->V[0];
+    source->distance = 0;
+    
+    map<Node *, bool> insideQMap;
+    priority_queue<Node *, vector<Node *>, NodeComparator> Q;
+    
+    for(unsigned int I=0; I < this->V.size(); I++){
+        Q.push(V[I]);
+        insideQMap[V[I]] = true;
+    }
+    
+    int remainingNodeCount = V.size();
+    int totalWeight = 0;
+    
+    while(!Q.empty() && remainingNodeCount > 0){
+        
+        Node *current = Q.top();
+        Q.pop();
+        remainingNodeCount--;
+        
+        totalWeight += current->distance;
+    }
+    
+    while(!Q.empty()){
+        Q.pop();
+    }
+    
+    return totalWeight;
 }
 
 int main()
