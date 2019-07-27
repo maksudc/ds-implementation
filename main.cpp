@@ -2,6 +2,9 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <limits>
+#include <stack>
+#include <queue>
 
 using namespace std;
 
@@ -40,9 +43,11 @@ public:
 
     VAL_TYPE value;
     vector<Edge *> edges;
+    int distance;
 
     Node(int _value){
         value = _value;
+        distance = numeric_limits<int>::max();
     }
 };
 
@@ -53,6 +58,13 @@ public:
     }
 };
 
+struct NodeComparator{
+public:
+    bool operator()(Node *node1, Node *node2){
+        return node1->distance > node2->distance;
+    }
+};
+
 class Graph{
 
 private:
@@ -60,7 +72,7 @@ private:
     Node *Union_Find(map<Node *, Node *> &parentMap, Node *node);
     Node *Union_Join(map<Node *, Node *> &parentMap, Node *node1, Node *node2);
 
-    void printKruskal(vector<Edge *> minimumSpanningTree);
+    void printMST(vector<Edge *> minimumSpanningTree);
 public:
 
     vector<Node *> V;
@@ -121,9 +133,9 @@ Node *Graph::Union_Join(map<Node *, Node *> &parentMap, Node *node1, Node *node2
 }
 
 
-void Graph::printKruskal(vector<Edge *> minimumSpanningTree){
+void Graph::printMST(vector<Edge *> minimumSpanningTree){
 
-    cout << "kruskal edges: " << endl;
+    cout << "edges: " << endl;
     for(unsigned int I=0; I < minimumSpanningTree.size(); I++){
         cout << minimumSpanningTree[I]->in->value << "-" << minimumSpanningTree[I]->out->value << " weight: " << minimumSpanningTree[I]->weight << endl;
     }
@@ -153,7 +165,7 @@ int Graph::kruskal(){
         }
     }
 
-    printKruskal(minimumSpanningTree);
+    printMST(minimumSpanningTree);
 
     int totalWeight = 0;
     for(unsigned int I=0; I < minimumSpanningTree.size(); I++){
@@ -164,38 +176,72 @@ int Graph::kruskal(){
 }
 
 int Graph::prim(){
-    
-    for(unsigned int I=0; I < this->V.size(); I++){
-        V[I]->distance = numeric_limits<int>::max();
-    }
-    
-    Node *source = this->V[0];
-    source->distance = 0;
-    
+
+    map<Node *, Edge *> lightEdgeMap;
     map<Node *, bool> insideQMap;
     priority_queue<Node *, vector<Node *>, NodeComparator> Q;
-    
+
+    Node *source = this->V[0];
+    source->distance = 0;
+
     for(unsigned int I=0; I < this->V.size(); I++){
+
         Q.push(V[I]);
         insideQMap[V[I]] = true;
+        lightEdgeMap.insert(pair<Node * , Edge *>(V[I], NULL));
     }
-    
+
     int remainingNodeCount = V.size();
     int totalWeight = 0;
-    
+
+    vector<Edge *> minimumSpanningTree;
+
+    cout << "starting Q processing: " << endl;
+
     while(!Q.empty() && remainingNodeCount > 0){
-        
+
         Node *current = Q.top();
         Q.pop();
+
+        if(!insideQMap[current]){
+            continue;
+        }
+
+        cout << "current: "<< current->value << " distance: " << current->distance << endl;
+
+        if(current != source){
+            minimumSpanningTree.push_back(lightEdgeMap[current]);
+            totalWeight += lightEdgeMap[current]->weight;
+        }
+
+        insideQMap[current] = false;
         remainingNodeCount--;
-        
-        totalWeight += current->distance;
+
+        for(unsigned int I=0; I < current->edges.size(); I++){
+
+            Edge *edge = current->edges[I];
+            Node *other = edge->getNeighbor(current);
+
+            if(insideQMap[other]){
+
+                if(other->distance > edge->weight){
+                    other->distance = edge->weight;
+                    lightEdgeMap[other] = edge;
+                }
+
+                cout << "other: " << other->value << " distance: " << other->distance << endl;
+
+                Q.push(other);
+            }
+        }
     }
-    
+
     while(!Q.empty()){
         Q.pop();
     }
-    
+
+    printMST(minimumSpanningTree);
+
     return totalWeight;
 }
 
