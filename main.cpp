@@ -5,6 +5,7 @@
 #include <limits>
 #include <stack>
 #include <queue>
+#include <cmath>
 
 using namespace std;
 
@@ -175,21 +176,214 @@ int Graph::kruskal(){
     return totalWeight;
 }
 
+class Heap{
+
+    vector<Node *> arr;
+    map<Node *, int> positionMap;
+
+public:
+
+    Heap(vector<Node *> _arr){
+        arr = _arr;
+
+        for(int I=1; I <= arr.size(); I++){
+            Node *node = arr[indexOf(I)];
+            positionMap[node] = I;
+        }
+
+        build_heap();
+    }
+
+    void build_heap(){
+
+        int N = size();
+        for(int I=(int)floor(N/2); I > 0; I--){
+            min_heapify(I);
+        }
+    }
+
+    Node *getMin(){
+        if(!empty()){
+            return arr[indexOf(1)];
+        }
+        return NULL;
+    }
+
+    Node *extractMin(){
+
+        Node *minNode = getMin();
+
+        cout << "min: " << minNode->value << " key: " << minNode->distance << endl;
+
+        Node *lastNode = getAt(size());
+
+        cout << "swap: " << lastNode->value << " key: " << lastNode->distance << endl;
+
+        arr[indexOf(size())] = minNode;
+        arr[indexOf(1)] = lastNode;
+        arr.pop_back();
+
+        positionMap[lastNode] = 1;
+
+        positionMap.erase(positionMap.find(minNode));
+
+        min_heapify(1);
+
+        return minNode;
+    }
+
+    void decreaseKey(Node *node, int key){
+
+        if(positionMap.find(node) != positionMap.end()){
+            if(key < node->distance){
+                node->distance = key;
+            }
+
+            int position = positionMap[node];
+            Node *current = node;
+
+            Node *parent = getParent(position);
+            position = positionMap[parent];
+
+            while(parent != NULL){
+
+                min_heapify(position);
+
+                parent = getParent(position);
+                if(parent != NULL){
+                    position = positionMap[parent];
+                }
+            }
+        }
+    }
+
+    void min_heapify(int position){
+
+        Node *left = getLeft(position);
+        Node *right = getRight(position);
+
+        Node *current = getAt(position);
+
+        if(current == NULL){
+            return;
+        }
+
+        Node *minNode = current;
+        int minPosition = position;
+
+        cout << "current: " << current->value << ":" << current->distance << endl;
+        cout << "left: " << left->value << ":" << left->distance << endl;
+        cout << "right: " << right->value << ":" << right->distance << endl;
+
+        if(left != NULL){
+            if(current->distance > left->distance){
+                minNode = left;
+                minPosition = 2 * position;
+            }
+        }
+
+        if(right != NULL){
+            if(minNode->distance > right->distance){
+                minNode = right;
+                minPosition = 2 * position + 1;
+            }
+        }
+
+        if(minPosition != position){
+
+            Node *temp = getAt(minPosition);
+
+            arr[indexOf(minPosition)] = current;
+            arr[indexOf(position)] = minNode;
+
+            positionMap[current] = minPosition;
+            positionMap[minNode] = position;
+
+            min_heapify(minPosition);
+        }
+
+        cout << "Heapify compplete " << endl;
+    }
+
+    void push(Node *node){
+
+        arr.push_back(node);
+        positionMap[node] = size();
+
+        int temp = node->distance;
+        node->distance = numeric_limits<int>::max();
+
+        decreaseKey(node, temp);
+    }
+
+    Node *getAt(int position){
+        if(indexOf(position) < size()){
+            return arr[indexOf(position)];
+        }
+        return NULL;
+    }
+
+    int getPosition(Node *node){
+
+        if(positionMap.find(node) != positionMap.end()){
+            return positionMap[node];
+        }
+
+        return NULL;
+    }
+
+    Node *getParent(int position){
+        int parentPosition = (int)floor(position/2);
+        if(indexOf(parentPosition) >= 0 && indexOf(parentPosition) < size()){
+            return arr[indexOf(parentPosition)];
+        }
+        return NULL;
+    }
+
+    int indexOf(int position){
+        return position-1;
+    }
+
+    Node *getLeft(int position){
+        if( indexOf(2 * position) < size()){
+            return arr[indexOf(2 * position)];
+        }
+        return NULL;
+    }
+
+    Node *getRight(int position){
+        if( indexOf(2 * position + 1) < size()){
+            return arr[indexOf(2 * position + 1)];
+        }
+        return NULL;
+    }
+
+    int size(){
+        return arr.size();
+    }
+
+    bool empty(){
+        return size() == 0;
+    }
+};
+
 int Graph::prim(){
 
     map<Node *, Edge *> lightEdgeMap;
     map<Node *, bool> insideQMap;
-    priority_queue<Node *, vector<Node *>, NodeComparator> Q;
+    //priority_queue<Node *, vector<Node *>, NodeComparator> Q;
 
     Node *source = this->V[0];
     source->distance = 0;
 
     for(unsigned int I=0; I < this->V.size(); I++){
 
-        Q.push(V[I]);
+        //Q.push(V[I]);
         insideQMap[V[I]] = true;
         lightEdgeMap.insert(pair<Node * , Edge *>(V[I], NULL));
     }
+
+    Heap heap(this->V);
 
     int remainingNodeCount = V.size();
     int totalWeight = 0;
@@ -198,14 +392,14 @@ int Graph::prim(){
 
     cout << "starting Q processing: " << endl;
 
-    while(!Q.empty() && remainingNodeCount > 0){
+    while(!heap.empty()){ //&& remainingNodeCount > 0){
 
-        Node *current = Q.top();
-        Q.pop();
+        Node *current = heap.extractMin();//Q.top();
+        //Q.pop();
 
-        if(!insideQMap[current]){
-            continue;
-        }
+        //if(!insideQMap[current]){
+        //    continue;
+        //}
 
         cout << "current: "<< current->value << " distance: " << current->distance << endl;
 
@@ -225,20 +419,22 @@ int Graph::prim(){
             if(insideQMap[other]){
 
                 if(other->distance > edge->weight){
-                    other->distance = edge->weight;
+
+                    heap.decreaseKey(other, edge->weight);
+                    //other->distance = edge->weight;
                     lightEdgeMap[other] = edge;
                 }
 
                 cout << "other: " << other->value << " distance: " << other->distance << endl;
 
-                Q.push(other);
+                //Q.push(other);
             }
         }
     }
 
-    while(!Q.empty()){
-        Q.pop();
-    }
+    //while(!Q.empty()){
+    //    Q.pop();
+    //}
 
     printMST(minimumSpanningTree);
 
