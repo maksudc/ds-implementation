@@ -49,22 +49,97 @@ public:
         root = root;
     }
 
-    virtual void insert(VAL_TYPE val){
+    BST(){
+        root = NULL;
+    }
 
-        //if(){}
+    virtual Node * insert(VAL_TYPE val){
+
+        Node *node = _search(root, val);
+        if(node != NULL){
+            return node;
+        }
+
+        node = new Node(val);
+        Node *parent = _searchParent(root, val);
+        if(parent == NULL){
+            root = node;
+        }else{
+            if(node->val > parent->val){
+                parent->right = node;
+            }else{
+                parent->left = node;
+            }
+            node->parent = parent;
+        }
+
+        return node;
     }
 
     virtual void remove(VAL_TYPE val){
 
         Node *node = search(val);
-        _remove(node);
+        if(node != NULL){
+            _remove(node);
+        }
     }
 
     Node *search(VAL_TYPE val){
         return _search(root, val);
     }
 
+    void print(){
+
+        cout << "[";
+        _printInorder(root);
+        cout << "]" << endl;
+    }
+
+    void _printInorder(Node *node){
+
+        if(node != NULL){
+
+            if(node->left != NULL){
+                _printInorder(node->left);
+            }
+
+            cout << "," << node->val;
+
+            if(node->right != NULL){
+                _printInorder(node->right);
+            }
+        }
+    }
+
+    ~BST(){
+        if(root != NULL){
+            delete root;
+        }
+    }
+
 protected:
+
+    Node *_searchParent(Node *node, VAL_TYPE val){
+
+        if(node == NULL){
+            return NULL;
+        }
+
+        if(val > node->val){
+
+            if(node->right != NULL){
+                return _search(node->right, val);
+            }
+            return node;
+        }
+
+        if(node->left != NULL){
+            return _search(node->left, val);
+        }
+
+        return node;
+    }
+
     Node *_search(Node *node, VAL_TYPE val){
 
         if(node == NULL || node->val == val){
@@ -107,7 +182,7 @@ protected:
             node2->left = temp;
 
             temp = node1->right;
-            node1->right = temp;
+            node1->right = node2->right;
             node2->right = temp;
         }
 
@@ -128,7 +203,7 @@ protected:
         }
 
         if(node1 != NULL && node2 != NULL){
-            temp = node1->parent;
+            Node *temp = node1->parent;
             node1->parent = node2->parent;
             node2->parent = temp;
 
@@ -142,8 +217,43 @@ protected:
 
     void _remove(Node *node){
 
-        if(node != NULL){
-            // find inorder successor
+        if(node == NULL){
+            return ;
+        }
+
+        if(node->left == NULL && node->right == NULL){
+            if(node->parent != NULL){
+                if(node->parent->left == node){
+                    node->parent->left = NULL;
+                }else{
+                    node->parent->right = NULL;
+                }
+            }
+
+            delete node;
+
+        }else if(node->left == NULL || node->right == NULL){
+
+            Node *existingNode = NULL;
+            if(node->left != NULL){
+                existingNode = node->left;
+            }else{
+                existingNode = node->right;
+            }
+
+            if(node->parent != NULL){
+                if(node->parent->left == node){
+                    node->parent->left = existingNode;
+                }else{
+                    node->parent->right = existingNode;
+                }
+            }
+            existingNode->parent = node->parent;
+
+            delete node;
+
+        }else{
+
             Node *successor = _findInorderSuccessor(node);
             _swap(node, successor);
             _remove(node);
@@ -161,9 +271,18 @@ public:
 
 int main()
 {
-    Node *root = new Node(0);
+    BST *bst = new BST();
 
+    VAL_TYPE a[] = { 1, 10, 9, 15 };
 
+    for(int I=0; I < 4; I++){
+        cout << a[I] << endl;
+        bst->insert(a[I]);
+    }
 
-    delete root;
+    cout << bst->root->val << endl;
+
+    bst->print();
+
+    delete bst;
 }
