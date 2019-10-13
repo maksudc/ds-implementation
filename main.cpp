@@ -21,11 +21,33 @@ public:
     Node *right;
     Node *parent;
 
+    int height;
+
     Node(VAL_TYPE _val){
         val = _val;
         left = NULL;
         right = NULL;
         parent = NULL;
+
+        height = 0;
+    }
+
+    bool isBalanced(){
+        return (int)abs(getLeftHeight() - getRightHeight()) <= 1;
+    }
+
+    int getLeftHeight(){
+        if(left != NULL){
+            return left->height;
+        }
+        return -1;
+    }
+
+    int getRightHeight(){
+        if(right != NULL){
+            return right->height;
+        }
+        return -1;
     }
 
     ~Node(){
@@ -40,11 +62,13 @@ public:
     }
 };
 
+// Needs templating support for attaching any class definition
 class BST{
-public:
 
+protected:
     Node *root;
 
+public:
     BST(Node *_root){
         root = root;
     }
@@ -76,9 +100,139 @@ public:
         return node;
     }
 
+    Node *avlInsert(VAL_TYPE val){
+
+
+        Node *node = insert(val);
+        Node *parent = _searchParent(root, val);
+
+        if(parent != NULL){
+
+            Node *current = parent;
+
+            while(current != NULL){
+
+                if(!current->isBalanced()){
+                    balance(current);
+                }
+                current->height = max(current->left, current->right) + 1;
+                // Setting height of each node after insertion
+                current = current->parent;
+            }
+        }
+    }
+
+    void balance(Node *x){
+
+        Node *p = x->parent;
+
+        Node *y = NULL;
+
+        if(x->getLeftHeight() > x->getRightHeight()){
+            y = x->left;
+        }else{
+            y = x->right;
+        }
+
+        Node *z = NULL;
+
+        if(y->getLeftHeight() > y->getRightHeight()){
+            z = y->left;
+        }else{
+            z = y->right;
+        }
+
+        if(x->left == y && y->left == z){
+
+            rotateRight(x);
+
+            x->height = max(x->getLeftHeight(), x->getRightHeight()) + 1;
+            z->height = max(z->getLeftHeight(), z->getRightHeight()) + 1;
+            y->height = max(y->getLeftHeight(), y->getRightHeight()) + 1;
+
+        }else if(x->left == y && y->right == z){
+
+            rotateLeft(y);
+            rotateRight(x);
+
+            x->height = max(x->getLeftHeight(), x->getRightHeight()) + 1;
+            y->height = max(y->getLeftHeight(), y->getRightHeight()) + 1;
+            z->height = max(z->getLeftHeight(), z->getRightHeight()) + 1;
+
+        }else if(x->right == y && y->right == z){
+
+            rotateLeft(x);
+
+            x->height = max(x->getLeftHeight(), x->getRightHeight()) + 1;
+            z->height = max(z->getLeftHeight(), z->getRightHeight()) + 1;
+            y->height = max(y->getLeftHeight(), y->getRightHeight()) + 1;
+
+        }else if(x->right == y && y->left == z){
+
+            rotateRight(y);
+            rotateLeft(x);
+
+            x->height = max(x->getLeftHeight(), x->getRightHeight()) + 1;
+            y->height = max(y->getLeftHeight(), y->getRightHeight()) + 1;
+            z->height = max(z->getLeftHeight(), z->getRightHeight()) + 1;
+        }
+    }
+
+    void parentLinkReplace(Node *node, Node *replacement){
+
+        Node *rnode = NULL;
+
+        if(node->parent != replacement){
+            rnode = replacement;
+        }
+
+        if(node->parent != NULL){
+            if(node->parent->left == node){
+                node->parent->left = rnode;
+            }else{
+                node->parent->right = rnode;
+            }
+        }
+    }
+
+    void rotateRight(Node *node){
+
+        Node *x = node;
+        Node *y = node->left;
+
+        Node *T1 = y->left;
+        Node *T2 = y->right;
+        Node *T3 = x->right;
+
+        y->right = x;
+        x->left = T2;
+
+        parentLinkReplace(x, y);
+        x->parent = y;p
+    }
+
+    void rotateLeft(Node *node){
+
+        Node *x = node;
+        Node *y = node->right;
+
+        Node *T1 = y->left;
+        Node *T2 = y->right;
+        Node *T3 = x->right;
+
+        Node *p = x->parent;
+
+        y->left = x;
+        x->right = T1;
+
+        parentLinkReplace(x, y);
+        x->parent = y;
+    }
+
     virtual void remove(VAL_TYPE val){
 
         Node *node = search(val);
+
         if(node != NULL){
             _remove(node);
         }
@@ -117,6 +271,7 @@ public:
         }
     }
 
+protected:
     Node *_searchParent(Node *node, VAL_TYPE val){
 
         if(node == NULL){
@@ -126,7 +281,7 @@ public:
         if(val > node->val){
 
             if(node->right != NULL){
-                return _searchParent(node->right, val);
+                Node *parent = _searchParent(node->right, val);
             }
             return node;
         }
@@ -277,14 +432,6 @@ public:
             _swap(node, successor);
             _remove(node);
         }
-    }
-};
-
-class AVLTree: public BST{
-public:
-
-    AVLTree(Node *root): BST(root){
-
     }
 };
 
