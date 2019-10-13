@@ -117,8 +117,6 @@ public:
         }
     }
 
-protected:
-
     Node *_searchParent(Node *node, VAL_TYPE val){
 
         if(node == NULL){
@@ -128,13 +126,13 @@ protected:
         if(val > node->val){
 
             if(node->right != NULL){
-                return _search(node->right, val);
+                return _searchParent(node->right, val);
             }
             return node;
         }
 
         if(node->left != NULL){
-            return _search(node->left, val);
+            return _searchParent(node->left, val);
         }
 
         return node;
@@ -147,10 +145,10 @@ protected:
         }
 
         if(val > node->val){
-            return _search(node->left, val);
+            return _search(node->right, val);
         }
 
-        return _search(node->right, val);
+        return _search(node->left, val);
     }
 
     Node *_findInorderSuccessor(Node *node){
@@ -179,11 +177,15 @@ protected:
         if(node1 != NULL && node2 != NULL){
             Node *temp = node1->left;
             node1->left = node2->left;
-            node2->left = temp;
+            if(temp != node2){
+                node2->left = temp;
+            }
 
             temp = node1->right;
             node1->right = node2->right;
-            node2->right = temp;
+            if(temp != node2){
+                node2->right = temp;
+            }
         }
 
         if(node1 != NULL && node1->parent != NULL){
@@ -195,23 +197,38 @@ protected:
         }
 
         if(node2 != NULL && node2->parent != NULL){
-            if(node2->parent->left == node2){
-                node2->parent->left = node1;
-            }else{
-                node2->parent->right = node1;
+
+            if(node2->parent != node1){
+                if(node2->parent->left == node2){
+                    node2->parent->left = node1;
+                }else{
+                    node2->parent->right = node1;
+                }
             }
         }
 
         if(node1 != NULL && node2 != NULL){
+
             Node *temp = node1->parent;
-            node1->parent = node2->parent;
+            if(node2->parent != node1){
+                node1->parent = node2->parent;
+            }else{
+                node1->parent = NULL;
+            }
             node2->parent = temp;
 
-            if(node1->parent == NULL){
-                root = node1;
-            }else if(node2->parent == NULL){
+            if(node2->parent == NULL){
                 root = node2;
             }
+        }
+    }
+
+    void _clean(Node *node){
+
+        if(node != NULL){
+            node->parent = NULL;
+            node->left = NULL;
+            node->right = NULL;
         }
     }
 
@@ -230,6 +247,7 @@ protected:
                 }
             }
 
+            _clean(node);
             delete node;
 
         }else if(node->left == NULL || node->right == NULL){
@@ -250,6 +268,7 @@ protected:
             }
             existingNode->parent = node->parent;
 
+            _clean(node);
             delete node;
 
         }else{
@@ -273,14 +292,16 @@ int main()
 {
     BST *bst = new BST();
 
-    VAL_TYPE a[] = { 1, 10, 9, 15 };
+    VAL_TYPE a[] = { 5, 10, 3, 1, 9, 15 };
 
-    for(int I=0; I < 4; I++){
+    for(int I=0; I < 6; I++){
         cout << a[I] << endl;
         bst->insert(a[I]);
     }
 
-    cout << bst->root->val << endl;
+    bst->print();
+
+    bst->remove(1);
 
     bst->print();
 
