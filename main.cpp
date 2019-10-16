@@ -86,9 +86,15 @@ public:
 
         node = new Node(val);
         Node *parent = _searchParent(root, val);
+
         if(parent == NULL){
+
+            cout << "Making root: " << node->val << endl;
             root = node;
         }else{
+
+            cout << "Parent : " << parent->val << endl;
+
             if(node->val > parent->val){
                 parent->right = node;
             }else{
@@ -102,33 +108,31 @@ public:
 
     Node *avlInsert(VAL_TYPE val){
 
-
         Node *node = insert(val);
+
         Node *parent = _searchParent(root, val);
 
-        if(parent != NULL){
+        Node *current = parent;
 
-            Node *current = parent;
+        while(current != NULL){
 
-            while(current != NULL){
-
-                if(!current->isBalanced()){
-                    balance(current);
-                }
-                current->height = max(current->left, current->right) + 1;
-                // Setting height of each node after insertion
-                current = current->parent;
+            if(!current->isBalanced()){
+                balance(current, val);
             }
+            current->height = max(current->getLeftHeight(), current->getRightHeight()) + 1;
+            current = current->parent;
         }
     }
 
-    void balance(Node *x){
+    Node *balance(Node *x, VAL_TYPE val){
+
+        Node *subTreeRoot = NULL;
 
         Node *p = x->parent;
 
         Node *y = NULL;
 
-        if(x->getLeftHeight() > x->getRightHeight()){
+        if(val < x->val){
             y = x->left;
         }else{
             y = x->right;
@@ -136,7 +140,7 @@ public:
 
         Node *z = NULL;
 
-        if(y->getLeftHeight() > y->getRightHeight()){
+        if(val < y->val){
             z = y->left;
         }else{
             z = y->right;
@@ -208,7 +212,14 @@ public:
         x->left = T2;
 
         parentLinkReplace(x, y);
-        x->parent = y;p
+
+        Node *p = x->parent;
+        x->parent = y;
+        y->parent = p;
+
+        if(y->parent == NULL){
+            root = y;
+        }
     }
 
     void rotateLeft(Node *node){
@@ -220,13 +231,17 @@ public:
         Node *T2 = y->right;
         Node *T3 = x->right;
 
-        Node *p = x->parent;
-
         y->left = x;
         x->right = T1;
 
         parentLinkReplace(x, y);
+
+        Node *p = x->parent;
         x->parent = y;
+        y->parent = p;
+        if(y->parent == NULL){
+            root = y;
+        }
     }
 
     virtual void remove(VAL_TYPE val){
@@ -278,10 +293,14 @@ protected:
             return NULL;
         }
 
+        if(node->val == val){
+            return node->parent;
+        }
+
         if(val > node->val){
 
             if(node->right != NULL){
-                Node *parent = _searchParent(node->right, val);
+                return _searchParent(node->right, val);
             }
             return node;
         }
@@ -439,16 +458,16 @@ int main()
 {
     BST *bst = new BST();
 
-    VAL_TYPE a[] = { 5, 10, 3, 1, 9, 15 };
+    VAL_TYPE a[] = { 5, 10, 3, 1, 9, 15, 7, 8 };
 
-    for(int I=0; I < 6; I++){
+    for(int I=0; I < 8; I++){
         cout << a[I] << endl;
-        bst->insert(a[I]);
+        bst->avlInsert(a[I]);
     }
 
     bst->print();
 
-    bst->remove(1);
+    //bst->remove(1);
 
     bst->print();
 
