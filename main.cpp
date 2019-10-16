@@ -124,6 +124,26 @@ public:
         }
     }
 
+    Node *avlRemove(VAL_TYPE val){
+
+        Node *subTreeRoot = remove(val);
+        if(subTreeRoot != NULL){
+
+            subTreeRoot->height = max(subTreeRoot->getLeftHeight(), subTreeRoot->getRightHeight()) + 1;
+
+            Node *current = subTreeRoot;
+            while(current != NULL){
+                if(!current->isBalanced()){
+                    balance(current, val);
+                }
+                current->height = max(subTreeRoot->getLeftHeight(), subTreeRoot->getRightHeight()) + 1;
+                current = current->parent;
+            }
+        }
+
+        return subTreeRoot;
+    }
+
     Node *balance(Node *x, VAL_TYPE val){
 
         Node *subTreeRoot = NULL;
@@ -244,13 +264,15 @@ public:
         }
     }
 
-    virtual void remove(VAL_TYPE val){
+    Node *remove(VAL_TYPE val){
 
         Node *node = search(val);
 
         if(node != NULL){
-            _remove(node);
+            return _remove(node);
         }
+
+        return NULL;
     }
 
     Node *search(VAL_TYPE val){
@@ -406,11 +428,13 @@ protected:
         }
     }
 
-    void _remove(Node *node){
+    Node *_remove(Node *node){
 
         if(node == NULL){
             return ;
         }
+
+        Node *parent = node->parent;
 
         if(node->left == NULL && node->right == NULL){
             if(node->parent != NULL){
@@ -419,6 +443,10 @@ protected:
                 }else{
                     node->parent->right = NULL;
                 }
+            }
+
+            if(node == root){
+                root = NULL;
             }
 
             _clean(node);
@@ -449,8 +477,10 @@ protected:
 
             Node *successor = _findInorderSuccessor(node);
             _swap(node, successor);
-            _remove(node);
+            return _remove(node);
         }
+
+        return parent;
     }
 };
 
