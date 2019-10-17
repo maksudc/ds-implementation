@@ -498,6 +498,8 @@ int main()
     bst->print();
 
     bst->avlRemove(1);
+    bst->avlRemove(7);
+    bst->avlRemove(3);
 
     bst->print();
 
