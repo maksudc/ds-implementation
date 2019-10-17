@@ -152,7 +152,7 @@ public:
 
         Node *y = NULL;
 
-        if(val < x->val){
+        if(x->getLeftHeight() > x->getRightHeight()){
             y = x->left;
         }else{
             y = x->right;
@@ -160,7 +160,7 @@ public:
 
         Node *z = NULL;
 
-        if(val < y->val){
+        if(y->getLeftHeight() > y->getRightHeight()){
             z = y->left;
         }else{
             z = y->right;
@@ -431,7 +431,7 @@ protected:
     Node *_remove(Node *node){
 
         if(node == NULL){
-            return ;
+            return NULL;
         }
 
         Node *parent = node->parent;
@@ -497,7 +497,7 @@ int main()
 
     bst->print();
 
-    //bst->remove(1);
+    bst->avlRemove(1);
 
     bst->print();
 
