@@ -496,7 +496,7 @@ int main()
 {
     BST *bst = new BST();
 
-    VAL_TYPE a[] = { 5, 10, 3, 1, 9, 15, 7, 6 };
+    VAL_TYPE a[] = { 5, 10, 3, 1, 15, 7, 9, 8 };
 
     for(int I=0; I < 8; I++){
         cout << a[I] << endl;
