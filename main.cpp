@@ -231,6 +231,10 @@ public:
         y->right = x;
         x->left = T2;
 
+        if(T2 != NULL){
+            T2->parent = x;
+        }
+
         parentLinkReplace(x, y);
 
         Node *p = x->parent;
@@ -247,12 +251,16 @@ public:
         Node *x = node;
         Node *y = node->right;
 
-        Node *T1 = y->left;
-        Node *T2 = y->right;
-        Node *T3 = x->right;
+        Node *T1 = x->left;
+        Node *T2 = y->left;
+        Node *T3 = y->right;
 
         y->left = x;
-        x->right = T1;
+        x->right = T2;
+
+        if(T2 != NULL){
+            T2->parent = x;
+        }
 
         parentLinkReplace(x, y);
 
@@ -488,7 +496,7 @@ int main()
 {
     BST *bst = new BST();
 
-    VAL_TYPE a[] = { 5, 10, 3, 1, 9, 15, 7, 8 };
+    VAL_TYPE a[] = { 5, 10, 3, 1, 9, 15, 7, 6 };
 
     for(int I=0; I < 8; I++){
         cout << a[I] << endl;
@@ -499,6 +507,7 @@ int main()
 
     bst->avlRemove(1);
     bst->avlRemove(7);
+    bst->avlRemove(3);
     bst->avlRemove(3);
 
     bst->print();
