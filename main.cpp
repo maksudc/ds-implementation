@@ -9,6 +9,8 @@
 
 using namespace std;
 
+#define RED 'r'
+#define BLACK 'b'
 
 typedef int VAL_TYPE;
 
@@ -20,6 +22,7 @@ public:
     Node *left;
     Node *right;
     Node *parent;
+    char color;
 
     int height;
 
@@ -30,6 +33,7 @@ public:
         parent = NULL;
 
         height = 0;
+        color = RED;
     }
 
     bool isBalanced(){
@@ -70,7 +74,7 @@ protected:
 
 public:
     BST(Node *_root){
-        root = root;
+        root = _root;
     }
 
     BST(){
@@ -122,6 +126,86 @@ public:
             current->height = max(current->getLeftHeight(), current->getRightHeight()) + 1;
             current = current->parent;
         }
+        return node;
+    }
+    
+    Node *rbInsert(VAL_TYPE val){
+        
+        Node *node = insert(val);
+        
+        return node;
+    }
+    
+    Node *rbBalance(Node *node){
+        
+        if(node == NULL){
+            return NULL;
+        }
+        
+        Node *parent = node->parent;
+        
+        if(node == root){
+            
+            node->color = BLACK;
+            
+        }else if(parent->color != BLACK){
+            
+            Node *grandfather = parent->parent;
+            Node *uncle = getUncle(node);
+            
+            if(uncle == NULL || uncle->color == BLACK){
+                // uncle is black
+                // needs rotation
+                
+                
+            }else{
+                // uncle is red
+                // needs changing color of parent, uncle and grandfather
+                
+                parent->color = BLACK;
+                uncle->color = BLACK;
+                grandfather->color = RED;
+                
+                return rbBalance(grandfather);
+            }
+        }
+        
+        return node;
+    }
+    
+    Node *rbRotate(Node *node){
+        
+        Node *parent = node->parent;
+        Node *grandfather = parent->parent;
+        
+        Node *x = grandfather;
+        Node *y = parent;
+        Node *z = node;
+        
+        if(x->left == y && y->left == z){
+            
+            rotateLeft(x);
+            
+        }else if(x->left == y && y->right == z){
+            
+        }else if(x->right == y && y->right == z){
+            
+        }else if(x->right == y && y->left == z){
+            
+        }
+    }
+    
+    Node *getUncle(Node *node){
+        
+        if(node != NULL && node->parent != NULL){
+            if(node->parent->left == node){
+                return node->parent->right;
+            }else{
+                return node->parent->left;
+            }
+        }
+        
+        return NULL;
     }
 
     Node *avlRemove(VAL_TYPE val){
@@ -143,13 +227,10 @@ public:
 
         return subTreeRoot;
     }
+    
 
     Node *balance(Node *x, VAL_TYPE val){
-
-        Node *subTreeRoot = NULL;
-
-        Node *p = x->parent;
-
+        
         Node *y = NULL;
 
         if(x->getLeftHeight() > x->getRightHeight()){
@@ -200,6 +281,8 @@ public:
             y->height = max(y->getLeftHeight(), y->getRightHeight()) + 1;
             z->height = max(z->getLeftHeight(), z->getRightHeight()) + 1;
         }
+        
+        return x;
     }
 
     void parentLinkReplace(Node *node, Node *replacement){
@@ -357,7 +440,7 @@ protected:
 
     Node *_findInorderSuccessor(Node *node){
 
-        if(node == NULL || node->left== NULL && node->right == NULL){
+        if(node == NULL || (node->left== NULL && node->right == NULL)){
             return NULL;
         }
 
