@@ -93,11 +93,8 @@ public:
 
         if(parent == NULL){
 
-            cout << "Making root: " << node->val << endl;
             root = node;
         }else{
-
-            cout << "Parent : " << parent->val << endl;
 
             if(node->val > parent->val){
                 parent->right = node;
@@ -133,6 +130,8 @@ public:
         
         Node *node = insert(val);
         
+        rbBalance(node);
+        
         return node;
     }
     
@@ -156,8 +155,7 @@ public:
             if(uncle == NULL || uncle->color == BLACK){
                 // uncle is black
                 // needs rotation
-                
-                
+                return rbRotate(node);
             }else{
                 // uncle is red
                 // needs changing color of parent, uncle and grandfather
@@ -184,18 +182,50 @@ public:
         
         if(x->left == y && y->left == z){
             
-            rotateLeft(x);
+            rotateRight(x);
+            
+            swapColor(x, y);
+            
+            return y;
             
         }else if(x->left == y && y->right == z){
             
+            rotateLeft(y);
+            rotateRight(x);
+            
+            swapColor(x, z);
+            
+            return z;
+            
         }else if(x->right == y && y->right == z){
+            
+            rotateLeft(x);
+            
+            swapColor(x, y);
+            
+            return y;
             
         }else if(x->right == y && y->left == z){
             
+            rotateRight(y);
+            rotateLeft(x);
+            
+            swapColor(x, z);
+            
+            return z;
         }
+        
+        return node;
     }
     
-    Node *getUncle(Node *node){
+    void swapColor(Node *x, Node *y){
+        
+        char temp = x->color;
+        x->color = y->color;
+        y->color  = temp;
+    }
+    
+    Node *getSibling(Node *node){
         
         if(node != NULL && node->parent != NULL){
             if(node->parent->left == node){
@@ -203,6 +233,15 @@ public:
             }else{
                 return node->parent->left;
             }
+        }
+        
+        return NULL;
+    }
+    
+    Node *getUncle(Node *node){
+        
+        if(node != NULL){
+            return getSibling(node->parent);
         }
         
         return NULL;
@@ -583,17 +622,17 @@ int main()
 
     for(int I=0; I < 8; I++){
         cout << a[I] << endl;
-        bst->avlInsert(a[I]);
+        bst->rbInsert(a[I]);
     }
 
     bst->print();
 
-    bst->avlRemove(1);
-    bst->avlRemove(7);
-    bst->avlRemove(3);
-    bst->avlRemove(3);
+//    bst->avlRemove(1);
+//    bst->avlRemove(7);
+//    bst->avlRemove(3);
+//    bst->avlRemove(3);
 
-    bst->print();
+//    bst->print();
 
     delete bst;
 }
